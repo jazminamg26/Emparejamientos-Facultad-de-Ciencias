@@ -15,6 +15,11 @@ os.chdir(path)
 
 baseCompleteRaw = pd.read_csv('respuestas.csv')
 
+
+# ********************************************************************************
+# PARTE 1: Limpieza de datos
+# ********************************************************************************
+
 # Se limpian los nombres de las columnas
 baseCompleteRaw = baseCompleteRaw.clean_names(remove_special=False)
 
@@ -95,12 +100,32 @@ baseComplete['nombre'] = baseComplete['nombre'].str.replace(r'\s+', ' ', regex=T
 
 # Como hay duplicados de personas que pusieron más de una vez su respuesta
 
-prebase = (
+Base = (
     baseComplete
     .sort_values('fecha_hora')                       # ordenar por hora
     .drop_duplicates(subset='correo', keep='last')  # quedarse con el registro más reciente por correo
     .reset_index(drop=True)                    # reiniciar índices
 )
 
+Base['id'] = Base.index + 1
+
+# ********************************************************************************
+# PARTE 2: Descriptivo
+# ********************************************************************************
+Base.columns
 
 
+def separa_valores_columna(Base, columna):
+    df = Base.copy()
+    # Convertir a lista
+    df[columna] = df[columna].str.split(',')
+    
+    # “Explotar” la lista en varias filas
+    df_long = df.explode(columna).reset_index(drop=True)
+    df_long[columna] = df_long[columna].str.strip()
+
+    
+    return df_long[['id', columna]]
+
+
+lugares_muy_bien = separa_valores_columna(Base, 'muybien')
