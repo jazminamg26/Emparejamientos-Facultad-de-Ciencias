@@ -70,5 +70,25 @@ def junta_sexo_genero(df):
     
     return df
 
-
 baseComplete = junta_sexo_genero(baseComplete)
+
+
+# Se limpia la parte de busca 
+baseComplete['busca'] = baseComplete['busca'].str.replace(r' >:\)', '', regex=True)
+baseComplete['busca'] = baseComplete['busca'].str.replace(r' :\)', '', regex=True)
+baseComplete['busca'] = baseComplete['busca'].str.replace(r' <3', '', regex=True)
+
+baseComplete['busca'] = baseComplete['busca'].str.replace(r'Una relación', 'relación', regex=True)
+baseComplete['busca'] = baseComplete['busca'].str.replace(r'Algo casual', 'casual', regex=True)
+baseComplete['busca'] = baseComplete['busca'].str.replace(r'Amistad', 'amistad', regex=True)
+
+
+baseComplete['nombre'] = baseComplete['nombre'].str.replace(r'^\s+|\s+$', '', regex=True)
+
+# quitar espacios al inicio y al final
+baseComplete['nombre'] = baseComplete['nombre'].str.strip()
+
+# reemplazar múltiples espacios internos por uno solo
+baseComplete['nombre'] = baseComplete['nombre'].str.replace(r'\s+', ' ', regex=True)
+
+
