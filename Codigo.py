@@ -92,3 +92,15 @@ baseComplete['nombre'] = baseComplete['nombre'].str.strip()
 baseComplete['nombre'] = baseComplete['nombre'].str.replace(r'\s+', ' ', regex=True)
 
 
+
+# Como hay duplicados de personas que pusieron más de una vez su respuesta
+
+prebase = (
+    baseComplete
+    .sort_values('fecha_hora')                       # ordenar por hora
+    .drop_duplicates(subset='correo', keep='last')  # quedarse con el registro más reciente por correo
+    .reset_index(drop=True)                    # reiniciar índices
+)
+
+
+
