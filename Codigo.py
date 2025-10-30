@@ -8,6 +8,7 @@ Created on Wed Oct 29 20:54:54 2025
 import os
 import pandas as pd 
 import janitor
+import numpy as np
 
 path = 'C:/Users/Jazmin/Documents/Ciencia de datos/Proyecto'
 os.chdir(path)
@@ -48,3 +49,26 @@ baseComplete.columns
 # Se modifica la fecha y hora en formato correcto
 baseComplete['fecha_hora'] = pd.to_datetime(baseComplete['fecha_hora'], format="%d/%m/%Y %H:%M:%S")
 
+# Se junta el genero y los gustos
+def junta_sexo_genero(df):
+    
+    condiciones = [
+        (df['genero'] == 'Hombre') & (df['gustos'] == 'Ambos'),
+        (df['genero'] == 'Hombre') & (df['gustos'] == 'Hombres'),
+        (df['genero'] == 'Hombre') & (df['gustos'] == 'Mujeres'),
+        (df['genero'] == 'Mujer') & (df['gustos'] == 'Ambos'),
+        (df['genero'] == 'Mujer') & (df['gustos'] == 'Hombres'),
+        (df['genero'] == 'Mujer') & (df['gustos'] == 'Mujeres')
+    ]
+
+
+    # Valores correspondientes
+    valores = ['Ha', 'Hh', 'Hm', 'Ma', 'Mh', 'Mm']
+
+    # Crear la nueva columna
+    df['grupo'] = np.select(condiciones, valores, default='')
+    
+    return df
+
+
+baseComplete = junta_sexo_genero(baseComplete)
