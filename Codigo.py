@@ -30,6 +30,18 @@ baseComplete = baseComplete.drop(['para_la_primera_cita_[jueves]',
                                    'si_tienes_algun_comentario_o_pregunta_escribelo_a_continuacion_']
                                   , axis=1)
 
+# Se renombran las columnas 
+baseComplete = baseComplete.rename(columns={"marca_temporal": "hora", 
+                   "direccion_de_correo_electronico": "correo",
+                   "para_la_primera_cita_[perfecto]" : "muybien",
+                   "para_la_primera_cita_[indiferente]" : "indiferente",
+                   "para_la_primera_cita_[para_nada]" : "mal",
+                   "¿como_te_llamas_" : "nombre",
+                   "¿como_te_identificas_" : "genero",
+                   "¿que_te_gusta_" : "gustos",
+                   "¿principalmente_que_estas_buscando_" : "busca",
+                   "lugares_favoritos_de_la_facultad" : "lugares",
+                   "escribe_algo_que_le_quieras_decir_a_tu_match_aqui_puedes_poner_cualquier_cosa_por_ejemplo_una_presentacion_sobre_ti_por_que_decidiste_estudiar_en_ciencias_que_te_gustaria_hacer_el_14_de_febrero_si_ya_estas_yendo_a_terapia_v_etc_" : "comentario"})
 
 
-
+baseComplete.columns
