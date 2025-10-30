@@ -31,7 +31,7 @@ baseComplete = baseComplete.drop(['para_la_primera_cita_[jueves]',
                                   , axis=1)
 
 # Se renombran las columnas 
-baseComplete = baseComplete.rename(columns={"marca_temporal": "hora", 
+baseComplete = baseComplete.rename(columns={"marca_temporal": "fecha_hora", 
                    "direccion_de_correo_electronico": "correo",
                    "para_la_primera_cita_[perfecto]" : "muybien",
                    "para_la_primera_cita_[indiferente]" : "indiferente",
@@ -43,5 +43,8 @@ baseComplete = baseComplete.rename(columns={"marca_temporal": "hora",
                    "lugares_favoritos_de_la_facultad" : "lugares",
                    "escribe_algo_que_le_quieras_decir_a_tu_match_aqui_puedes_poner_cualquier_cosa_por_ejemplo_una_presentacion_sobre_ti_por_que_decidiste_estudiar_en_ciencias_que_te_gustaria_hacer_el_14_de_febrero_si_ya_estas_yendo_a_terapia_v_etc_" : "comentario"})
 
-
 baseComplete.columns
+
+# Se modifica la fecha y hora en formato correcto
+baseComplete['fecha_hora'] = pd.to_datetime(baseComplete['fecha_hora'], format="%d/%m/%Y %H:%M:%S")
+
