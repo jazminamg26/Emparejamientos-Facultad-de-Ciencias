@@ -933,7 +933,7 @@ emparejamientosComplete <- rbind(emparejamientos_mujeres_heteros_unique,
                          emparejamientos_gays,
                          emparejamientos_lesbianas)
 
-
+emparejamientosComplete
 emparejamientos <- emparejamientosComplete%>% drop_na()
 dim(emparejamientosComplete)
 dim(emparejamientos)
@@ -985,81 +985,11 @@ distanciasnoEmparejados <- distancias[,noEmparejados$id]
 
 Resultados <- preResultados
 
-# save.image("Final.Rdata")
 
-# Guardar resultados ----
-setwd("C:/Users/Jazmin/OneDrive/Documents/Sumidero/textos")
+# Comprobación de los resultados
+Resultados%>%
+  filter(distancia<0.25)
 
-for(ID in unique(Resultados$id)){
-  
-  matches <- preResultados%>%
-    filter(id == ID)%>%
-    select(match)%>%pull()
-  
-  baseId <- base%>%
-    filter(id == ID)
-  baseMatches <- base%>%
-    filter(id %in% matches)
-  
-  
-  
-  nombresMatches <- sub(" .*", "", baseMatches$nombre)%>%
-    glue::glue_collapse(sep = ", ", last = " y ")
-  nombreid <- sub(" .*", "", baseId$nombre)
-  
-  if (length(matches)==1){
-    TextoPrimero <- paste0("Hola ",nombreid," :). Has coincidido con ", nombresMatches, ".\n\n") 
-  }else{
-    TextoPrimero <- paste0("Hola ",nombreid," :). Has coincidido con ", length(matches), 
-                           " personas: ", nombresMatches, ".\n\n") 
-  }
-
-  
-  
-  TextoPorMatch <- c()  
-  
-  for (i in seq_len(nrow(baseMatches))) {
-    
-    if(str_count(baseMatches$redes_sociales[i]) == 0){
-      
-      texto <- paste0(
-        sub(" .*", "", baseMatches$nombre[i]), " está buscando ", str_to_lower(baseMatches$busca[i]),
-        ", sus hobbies favoritos son: ", str_to_lower(baseMatches$hobbies[i]), 
-        ". Para la primera cita piensa que es perfecto ir a: ", str_to_lower(baseMatches$muybien[i]), 
-        ". Sus lugares favoritos de la facultad de ciencias son: ", str_to_lower(baseMatches$lugares[i]), 
-        ". Por último, ", sub(" .*", "", baseMatches$nombre[i]), " quiere decirte: ",gsub("[\r\n]", ".",  baseMatches$comentario_original[i]),
-        " Su correo es: ", baseMatches$correo[i]
-      )
-      
-    }
-    
-    else if(str_count(baseMatches$redes_sociales[i]) > 0) {
-      
-      texto <- paste0(
-        sub(" .*", "", baseMatches$nombre[i]), " está buscando ", str_to_lower(baseMatches$busca[i]),
-        ", sus hobbies favoritos son: ", str_to_lower(baseMatches$hobbies[i]), 
-        ". Para la primera cita piensa que es perfecto ir a: ", str_to_lower(baseMatches$muybien[i]), 
-        ". Sus lugares favoritos de la facultad de ciencias son: ", str_to_lower(baseMatches$lugares[i]), 
-        ". Por último, ", sub(" .*", "", baseMatches$nombre[i]), " quiere decirte: ",gsub("[\r\n]", ".",  baseMatches$comentario_original[i]),
-        "\nSu correo es: ", baseMatches$correo[i], ". Y sus redes sociales: ",baseMatches$redes_sociales[i]
-      )
-    }
-    
-    TextoPorMatch <- c(TextoPorMatch, texto)
-  }
-  
-  TextoPrefinal <- paste(TextoPorMatch, collapse = "\n\n")  # Une los textos con doble salto de línea
-  
-  TextoFinal <- paste0(TextoPrimero,TextoPrefinal)
-
-  writeLines(TextoFinal, paste0("id_",baseId$id,".txt"), useBytes=T)
-  
-}
-
-# save.image("DatosFinales.Rdata")
-
-
-
-16260-12000
-
+p <- base%>%
+  filter(id %in% c(291, 180))
 

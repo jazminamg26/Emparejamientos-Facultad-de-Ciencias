@@ -482,114 +482,114 @@ resumen_evaluacion <- function(resultados){
 }
 
 
-# # Entre más cerca de 1 mejor
-# # Modelo 1 ----
-# modelo1 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.4,
-#                                                 pts_hobbies = 0.3,
-#                                                 pts_primeraCita = 0.25,
-#                                                 pts_lugaresFac = 0.05))
-# 
-# resultados_promedios_modelo1 <- evaluacion_promedio_distancias(modelo1)
-# 
-# 
-# # Modelo 2 ----
-# modelo2 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.3,
-#                                                 pts_hobbies = 0.4,
-#                                                 pts_primeraCita = 0.25,
-#                                                 pts_lugaresFac = 0.05))
-# resultados_promedios_modelo2 <- evaluacion_promedio_distancias(modelo2)
-# 
-# 
-# # Modelo 3 ----
-# modelo3 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.25,
-#                                                 pts_hobbies = 0.25,
-#                                                 pts_primeraCita = 0.25,
-#                                                 pts_lugaresFac = 0.25))
-# 
-# resultados_promedios_modelo3 <- evaluacion_promedio_distancias(modelo3)
-# 
-# 
-# 
-# # Modelo 4 ----
-# modelo4 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.4,
-#                                                 pts_hobbies = 0.4,
-#                                                 pts_primeraCita = 0.2,
-#                                                 pts_lugaresFac = 0.0))
-# 
-# resultados_promedios_modelo4 <- evaluacion_promedio_distancias(modelo4)
-# 
-# 
-# 
-# # Modelo 5 ----
-# modelo5 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.3,
-#                                                 pts_hobbies = 0.3,
-#                                                 pts_primeraCita = 0.2,
-#                                                 pts_lugaresFac = 0.2))
-# 
-# resultados_promedios_modelo5 <- evaluacion_promedio_distancias(modelo5)
-# 
-# 
-# # Modelo 6 ----
-# modelo6 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.25,
-#                                                 pts_hobbies = 0.25,
-#                                                 pts_primeraCita = 0.15,
-#                                                 pts_lugaresFac = 0.15))
-# 
-# resultados_promedios_modelo6 <- evaluacion_promedio_distancias(modelo6)
-# 
-# 
-# # Modelo 7 ----
-# modelo7 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.5,
-#                                                 pts_hobbies = 0.3,
-#                                                 pts_primeraCita = 0.2,
-#                                                 pts_lugaresFac = 0.0))
-# 
-# resultados_promedios_modelo7 <- evaluacion_promedio_distancias(modelo7)
-# 
-# # Modelo 8 ----
-# modelo8 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.45,
-#                                                 pts_hobbies = 0.35,
-#                                                 pts_primeraCita = 0.15,
-#                                                 pts_lugaresFac = 0.05))
-# 
-# resultados_promedios_modelo8 <- evaluacion_promedio_distancias(modelo8)
-# 
-# 
-# # Modelo 9 ----
-# modelo9 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.35,
-#                                                 pts_hobbies = 0.35,
-#                                                 pts_primeraCita = 0.25,
-#                                                 pts_lugaresFac = 0.05))
-# 
-# resultados_promedios_modelo9 <- evaluacion_promedio_distancias(modelo9)
-# 
-# 
-# # Modelo 10 ----
-# modelo10 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.4,
-#                                                 pts_hobbies = 0.3,
-#                                                 pts_primeraCita = 0.15,
-#                                                 pts_lugaresFac = 0.15))
-# 
-# resultados_promedios_modelo10 <- evaluacion_promedio_distancias(modelo10)
-# 
-# 
-# # Resumen de los resultados
-# for (i in 1:10) {
-#   objeto <- get(paste0("resultados_promedios_modelo", i))
-#   resumen <- resumen_evaluacion(objeto)
-#   print(paste("Resumen del modelo", i))
-#   print(resumen)
-# }
+# Entre más cerca de 1 mejor
+# Modelo 1 ----
+modelo1 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.4,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.25,
+                                                pts_lugaresFac = 0.05))
+
+resultados_promedios_modelo1 <- evaluacion_promedio_distancias(modelo1)
+
+
+# Modelo 2 ----
+modelo2 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.3,
+                                                pts_hobbies = 0.4,
+                                                pts_primeraCita = 0.25,
+                                                pts_lugaresFac = 0.05))
+resultados_promedios_modelo2 <- evaluacion_promedio_distancias(modelo2)
+
+
+# Modelo 3 ----
+modelo3 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.25,
+                                                pts_hobbies = 0.25,
+                                                pts_primeraCita = 0.25,
+                                                pts_lugaresFac = 0.25))
+
+resultados_promedios_modelo3 <- evaluacion_promedio_distancias(modelo3)
+
+
+
+# Modelo 4 ----
+modelo4 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.4,
+                                                pts_hobbies = 0.4,
+                                                pts_primeraCita = 0.2,
+                                                pts_lugaresFac = 0.0))
+
+resultados_promedios_modelo4 <- evaluacion_promedio_distancias(modelo4)
+
+
+
+# Modelo 5 ----
+modelo5 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.3,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.2,
+                                                pts_lugaresFac = 0.2))
+
+resultados_promedios_modelo5 <- evaluacion_promedio_distancias(modelo5)
+
+
+# Modelo 6 ----
+modelo6 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.25,
+                                                pts_hobbies = 0.25,
+                                                pts_primeraCita = 0.15,
+                                                pts_lugaresFac = 0.15))
+
+resultados_promedios_modelo6 <- evaluacion_promedio_distancias(modelo6)
+
+
+# Modelo 7 ----
+modelo7 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.5,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.2,
+                                                pts_lugaresFac = 0.0))
+
+resultados_promedios_modelo7 <- evaluacion_promedio_distancias(modelo7)
+
+# Modelo 8 ----
+modelo8 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.45,
+                                                pts_hobbies = 0.35,
+                                                pts_primeraCita = 0.15,
+                                                pts_lugaresFac = 0.05))
+
+resultados_promedios_modelo8 <- evaluacion_promedio_distancias(modelo8)
+
+
+# Modelo 9 ----
+modelo9 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.35,
+                                                pts_hobbies = 0.35,
+                                                pts_primeraCita = 0.25,
+                                                pts_lugaresFac = 0.05))
+
+resultados_promedios_modelo9 <- evaluacion_promedio_distancias(modelo9)
+
+
+# Modelo 10 ----
+modelo10 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.4,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.15,
+                                                pts_lugaresFac = 0.15))
+
+resultados_promedios_modelo10 <- evaluacion_promedio_distancias(modelo10)
+
+
+# Resumen de los resultados
+for (i in 1:10) {
+  objeto <- get(paste0("resultados_promedios_modelo", i))
+  resumen <- resumen_evaluacion(objeto)
+  print(paste("Resumen del modelo", i))
+  print(resumen)
+}
 # Se conserva el modelo 10 por lo que ocupamos esas distancias para todos
 
 distancias <- get_distancias(pts_busca = 0.4,
@@ -674,3 +674,26 @@ gays <- base %>%
            (genero == "Hombre" & gustos == "Ambos"))
 
 emparejamientos_gays <- get_resultados_homo(gays, distancias)
+
+
+
+
+# Se hacen pruebas
+filter_base_emparejamientos_homosexuales <- function(emparejamientos, idSeleccionado){
+  
+  emparejamientos <- emparejamientos%>%
+    filter(persona1==idSeleccionado)
+  
+  base_filtrada <- base%>%
+    filter(id %in% c(emparejamientos$persona1,
+                     emparejamientos$persona2))
+  
+  return(base_filtrada)
+}
+
+p <- sample(emparejamientos_gays$persona1, 1)
+matches <- filter_base_emparejamientos_homosexuales(emparejamientos_gays, p)
+
+
+p <- sample(emparejamientos_lesbianas$persona1, 1)
+matches <- filter_base_emparejamientos_homosexuales(emparejamientos_lesbianas, p)
