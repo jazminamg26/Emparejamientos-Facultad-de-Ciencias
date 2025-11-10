@@ -3,6 +3,10 @@ library(janitor);library(stringi);library(stringr)
 library(tm);library(tidytext);library(tidyr);library(igraph)
 library(matchingR);library(stringdist);library(tm)
 library(proxy);library(glue)
+library(showtext)
+library(ggplot2)
+library(tidyverse)
+library(forcats)
 
 
 setwd("C:/Users/Jazmin/Documents/Ciencia de datos/Proyecto")
@@ -68,8 +72,6 @@ base <- baseComplete%>%
 
 
 # Análisis exploratorio ----------------
-library(showtext)
-library(ggplot2)
 font_add_google(c("Poppins"))
 showtext_auto()
 tipografia <- "Poppins"
@@ -77,19 +79,24 @@ base
 
 
 # Género de los participantes -----
-genero <- base %>%
+
+generos <- base %>%
   count(genero)%>%
+  rename("totalGenero" = n)
+
+porcentaje_generos <- generos%>%
   mutate(
-    pct = round((100 * n / sum(n)), 1),
+    pct = round((100 * totalGenero / sum(totalGenero)), 1),
     etiqueta_pct = paste0(pct, "%"))%>%
-  arrange(desc(n))
+  arrange(desc(totalGenero))
 
-genero
 
-ggplot(genero, aes(x = "", y = n, fill = genero)) +
+porcentaje_generos
+
+ggplot(porcentaje_generos, aes(x = "", y = totalGenero, fill = genero)) +
   geom_bar(stat = "identity", width = 1, color = "white") +
   coord_polar(theta = "y") +
-  scale_fill_manual(values = c("#BADFDB", "#FFA4A4")) +
+  scale_fill_manual(values = c("#84994F", "#F4CE14")) +
   theme_void(base_family = "Poppins") +
   theme(plot.title = element_text(size=18, family = "Poppins"),
         legend.title = element_blank(),
@@ -100,67 +107,7 @@ ggplot(genero, aes(x = "", y = n, fill = genero)) +
              position = position_stack(vjust = 0.5),
              show.legend = FALSE) 
 
-# Lugares preferidos para la primera cita -----
-split_muyBien <- base%>% 
-  separate_rows(muybien , sep = ", ")
 
-n_split_muyBien <- split_muyBien %>%
-  count(muybien) %>%
-  mutate(
-    pct = round(100 * n / sum(n), 1),
-    nombre = case_when(
-      muybien == "Ir por un helado" ~ "Ir por \nun helado",     
-      TRUE ~ as.character(muybien)
-    ),
-    etiqueta_pct = paste0(pct, "%")
-  )%>%
-  arrange(desc(n))
-n_split_muyBien
-
-ggplot(n_split_muyBien, aes(x = "", y = n, fill = nombre)) +
-  geom_bar(stat = "identity", width = 1, color = "white") +
-  coord_polar(theta = "y") +
-  scale_fill_manual(values = c("#386641", "#F97A00", "#FFCF71", "#EA5B6F", "#78C841", "#FFD93D", "#BBC863")) +
-  theme_void(base_family = "Poppins") +
-  theme(plot.title = element_text(size=18, family = "Poppins"),
-        legend.title = element_blank(),
-        legend.text = element_text(size=12, family = "Poppins"))+
-  # theme_bw(base_family = "Poppins")+
-  labs(title = "Lugares preferidos para la primera cita", fill = "Categoría")
-
-
-
-# Distribución de lugares favoritos por género -----
-
-base_lugares_muy_bien_split <- base%>% 
-  separate_rows(muybien , sep = ", ")
-
-lugar_muybien_por_genero <- base_lugares_muy_bien_split%>%
-  count(genero, muybien)%>%
-  arrange(muybien)%>%
-  group_by(genero)%>%
-  mutate(porcentaje_por_genero_lugar = round((100 * n / sum(n)), 1))%>%
-  ungroup()%>%
-  group_by(muybien)%>%
-  mutate(porcentaje = round((100 * porcentaje_por_genero_lugar / sum(porcentaje_por_genero_lugar)), 1))%>%
-  arrange(muybien)
-  
-lugar_muybien_por_genero
-
-ggplot(lugar_muybien_por_genero, aes(fill=genero, 
-                                     y=porcentaje, 
-                                     x=muybien)) + 
-  geom_bar(position="fill", stat="identity")+
-  scale_fill_manual(values = c("#9ECAD6", "#FFA4A4")) +
-  theme_minimal()+
-  theme(
-        text = element_text(size=18, family = "Poppins"),
-        plot.title = element_text(size=18, family = "Poppins"),
-        legend.text = element_text(size=12, family = "Poppins"),
-        legend.title = element_blank(),
-        axis.title = element_blank()
-        )+
-  labs(title = "Distribución de lugares favoritos por género", fill = "Categoría")
 
 
 # Gustos por género -----
@@ -172,3 +119,70 @@ gustos_genero <- base %>%
          porcentaje = paste0(porcentaje, "%"))
 
 gustos_genero
+
+
+
+# Hobbies --------
+
+split_hobbies <- base%>% 
+  separate_rows(hobbies , sep = ", ")
+
+hobbies_por_genero <- split_hobbies%>%
+  count(genero, hobbies)%>%
+  right_join(generos, by="genero")%>%
+  mutate(hobbiePorGenero = round(100 * n / totalGenero, 1))%>%    
+  mutate(
+    hobbiePorGenero = round(100 * n / totalGenero, 1),   
+    hobbies = as_factor(hobbies),
+    hobbies = fct_reorder(hobbies, hobbiePorGenero, .desc = TRUE)
+  )
+
+
+hobbies_por_genero
+
+ggplot(hobbies_por_genero, aes(fill=genero, 
+                                     y=hobbiePorGenero, 
+                                     x=hobbies)) + 
+  geom_bar(position="dodge", stat="identity")+
+  scale_fill_manual(values = c("#84994F", "#F4CE14")) +
+  theme_minimal()+
+  theme(
+    text = element_text(size=18, family = "Poppins"),
+    plot.title = element_text(size=18, family = "Poppins"),
+    legend.text = element_text(size=12, family = "Poppins"),
+    legend.title = element_blank(),
+    axis.title = element_blank()
+  )+
+  labs(title = "Hobbies", fill = "Categoría")
+
+
+# Distribución de lugares favoritos por género -----
+
+split_lugares_muybien <- base%>% 
+  separate_rows(muybien , sep = ", ")
+
+lugares_muybien_por_genero <- split_lugares_muybien %>%
+  count(genero, muybien) %>%                 
+  right_join(generos, by = "genero") %>%    
+  mutate(
+    lugarPorGenero = round(100 * n / totalGenero, 1),   
+    muybien = as_factor(muybien),
+    muybien = fct_reorder(muybien, lugarPorGenero, .desc = TRUE)
+  )
+
+lugares_muybien_por_genero
+
+ggplot(lugares_muybien_por_genero, aes(fill=genero, 
+                               y=lugarPorGenero, 
+                               x=muybien)) + 
+  geom_bar(position="dodge", stat="identity")+
+  scale_fill_manual(values = c( "#84994F", "#F4CE14")) +
+  theme_minimal()+
+  theme(
+    text = element_text(size=18, family = "Poppins"),
+    plot.title = element_text(size=18, family = "Poppins"),
+    legend.text = element_text(size=12, family = "Poppins"),
+    legend.title = element_blank(),
+    axis.title = element_blank()
+  )+
+  labs(title = "Lugares preferidos para la primera cita", fill = "Categoría")
