@@ -121,6 +121,112 @@ gustos_genero <- base %>%
 gustos_genero
 
 
+# Preferencias de busqueda -----
+
+busca_genero <- base %>%
+  count(genero, busca)%>%
+  group_by(genero) %>%
+  mutate(porcentaje = round(n / sum(n) * 100, 1),
+         porcentaje = paste0(porcentaje, "%"))
+
+
+mujeres_busqueda <- busca_genero%>%
+  filter(genero == "Mujer")
+
+
+ggplot(mujeres_busqueda, aes(x = "", y = n, fill = busca)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  
+  # Colores personalizados del gráfico
+  scale_fill_manual(values = c("#FFC4C4", "#EE6983", "#850E35")) +
+  
+  # Etiquetas con color de texto dinámico según el fill
+  geom_label(
+    aes(
+      label = porcentaje,
+      color = after_scale(
+        ifelse(
+          # Aquí decides cuándo usar texto blanco o negro según el tono del fill
+          fill %in% c("#850E35", "#EE6983"), "white", "black"
+        )
+      )
+    ),
+    position = position_stack(vjust = 0.5),
+    show.legend = FALSE,
+    label.padding = unit(0.25, "lines"),
+    size = 4,
+    family = "Poppins"
+  ) +
+  
+  # Escala del color de texto (solo para que ggplot lo acepte)
+  scale_color_identity() +
+  
+  # Tema general
+  theme_void(base_family = "Poppins") +
+  theme(
+    plot.title = element_text(size = 18, family = "Poppins"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 12, family = "Poppins")
+  ) +
+  
+  labs(
+    title = "¿Qué buscan las mujeres?",
+    fill = "Categoría"
+  )
+
+
+
+
+
+hombres_busqueda <- busca_genero%>%
+  filter(genero == "Hombre")
+
+
+ggplot(hombres_busqueda, aes(x = "", y = n, fill = busca)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  
+  # Colores personalizados del gráfico
+  scale_fill_manual(values = c("#B9E5E8", "#7AB2D3", "#4A628A")) +
+  
+  # Etiquetas con color de texto dinámico según el fill
+  geom_label(
+    aes(
+      label = porcentaje,
+      color = after_scale(
+        ifelse(
+          # Aquí decides cuándo usar texto blanco o negro según el tono del fill
+          fill %in% c("#4A628A", "#7AB2D3"), "white", "black"
+        )
+      )
+    ),
+    position = position_stack(vjust = 0.5),
+    show.legend = FALSE,
+    label.padding = unit(0.25, "lines"),
+    size = 4,
+    family = "Poppins"
+  ) +
+  
+  # Escala del color de texto (solo para que ggplot lo acepte)
+  scale_color_identity() +
+  
+  # Tema general
+  theme_void(base_family = "Poppins") +
+  theme(
+    plot.title = element_text(size = 18, family = "Poppins"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 12, family = "Poppins")
+  ) +
+  
+  labs(
+    title = "¿Qué buscan los hombres?",
+    fill = "Categoría"
+  )
+
+
+
+
 
 # Hobbies --------
 
