@@ -846,7 +846,7 @@ matches <- filter_base_emparejamientos_mujeres_heteros(m)%>%
   select(-comentario_clean, -comentario)
 
 
-# Parte 2: Recomendaciones para homodsexuales  ----
+# Parte 2: Recomendaciones para homosexuales  ----
 # Se usa el algoritmo de GaleyShapley con la modificación de roomies
 
 get_resultados_homo <- function(base_filtrada, distancias){
@@ -1064,5 +1064,8 @@ for(ID in unique(Resultados$id)){
 
 # save.image("DatosFinales.Rdata")
 
+
+
+16260-12000
 
 

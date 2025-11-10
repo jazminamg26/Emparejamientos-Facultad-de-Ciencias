@@ -114,6 +114,12 @@ Base['id'] = Base.index + 1
 # ********************************************************************************
 Base.columns
 
+tipografia = 'Century Gothic'
+from plotnine import * 
+from plotnine.data import anscombe_quartet 
+import plotly.express as px
+import matplotlib.pyplot as plt
+
 
 def separa_valores_columna(Base, columna):
     df = Base.copy()
@@ -129,3 +135,43 @@ def separa_valores_columna(Base, columna):
 
 
 lugares_muy_bien = separa_valores_columna(Base, 'muybien')
+
+
+
+df = px.data.tips()
+fig = px.pie(df, values='tip', names='day', color='day',
+             color_discrete_map={'Thur':'lightcyan',
+                                 'Fri':'cyan',
+                                 'Sat':'royalblue',
+                                 'Sun':'darkblue'})
+fig.show()
+
+# Gráfica para mostrar los lugares muy bien
+
+# Contar ocurrencias por categoría
+conteo_lugares_muy_bien = lugares_muy_bien['muybien'].value_counts()
+
+
+# Colores personalizados
+colores = ['#8CE4FF','#FEEE91','#FFA239','#FF5656','#FFD63A','#5EABD6','#78C841']
+
+# Separar algunos sectores un poco (explode)
+explode = [0.05]*len(conteo_lugares_muy_bien)  # todos separados ligeramente
+
+# Crear pie chart
+plt.figure(figsize=(8,8))
+plt.pie(
+    conteo_lugares_muy_bien, 
+    labels=conteo_lugares_muy_bien.index, 
+    autopct='%1.1f%%', 
+    startangle=90, 
+    colors=colores, 
+    explode=explode,
+    shadow=False,
+    textprops={'fontname':tipografia, 'fontsize':12} 
+)
+plt.title('Distribución de lugares muy bien',
+          fontsize=16,fontname=tipografia)
+plt.axis('equal')  # círculo perfecto
+plt.show()
+
