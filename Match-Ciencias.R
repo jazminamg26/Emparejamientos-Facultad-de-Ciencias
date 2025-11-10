@@ -387,7 +387,7 @@ evaluacion_promedio_distancias <- function(modelo){
     emparejamientos_mujeres_heteros <- modelo[[2]]
     
     # Entre más cerca de uno es mejor ya que es cuánto nivel de porcentaje comparten
-    # Por ejemplo si le gusta Cocinar y hacer ejercicio y al hombre solo cocinar, tiene .5
+    # Por ejemplo si a la mujer le gusta Cocinar y hacer ejercicio y al hombre solo cocinar, tiene .5
     filter_base_emparejamientos_mujeres_heteros <- function(idSeleccionado){
       emparejamientos_mujeres_heteros_filtrado <- emparejamientos_mujeres_heteros%>%
         filter(mujer==idSeleccionado)
@@ -432,7 +432,15 @@ evaluacion_promedio_distancias <- function(modelo){
     # Calcular promedio por columna
     promedios <- colMeans(coincidencias, na.rm = TRUE) %>% round(2)
     
-    return(as.data.frame(t(promedios)))  # Transponer para visualizar mejor
+    # Calcular medianas por columna
+    medianas <- apply(coincidencias, 2, median, na.rm = TRUE)%>% round(2)
+
+    
+    promedios <- (as.data.frame(t(promedios)))  # Transponer para visualizar mejor
+    medianas <- (as.data.frame(t(medianas)))
+    
+    resultados <- cbind(c("promedios","medianas") , rbind(promedios, medianas))
+    return(resultados)
   }
   
   emparejamientos_mujeres_heteros <- modelo[[2]]
@@ -443,15 +451,36 @@ evaluacion_promedio_distancias <- function(modelo){
     resultados <- rbind(resultado, resultados)
   }
   
-  resultados_finales <- as.data.frame(list(muybien = mean(resultados$muybien),
+  resultados_finales_promedios <- as.data.frame(list(muybien = mean(resultados$muybien),
                                            mal = mean(resultados$mal),
                                            busca = mean(resultados$busca),
                                            hobbies = mean(resultados$hobbies),
                                            lugares = mean(resultados$lugares)
   ))
+
+  resultados_finales_medianas <- as.data.frame(list(muybien = median(resultados$muybien),
+                                           mal = median(resultados$mal),
+                                           busca = median(resultados$busca),
+                                           hobbies = median(resultados$hobbies),
+                                           lugares = median(resultados$lugares)
+  ))
   
+  resultados_finales <- cbind(c("promedios","medianas") , rbind(resultados_finales_promedios,
+                                                                resultados_finales_medianas))
+  names(resultados_finales)[1] <- c("estadística")
   return(resultados_finales)
 }
+
+resumen_evaluacion <- function(resultados){
+  media <- mean(unlist(c(resultados[1,2:5])))
+  mediana <- median(unlist(c(resultados[1,2:5])))
+  resultados <- cbind(media, mediana)
+  # names(resultados) <- c("media","mediana")
+  return( resultados )
+  
+  
+}
+
 
 # Entre más cerca de 1 mejor
 # Modelo 1 ----
@@ -462,7 +491,7 @@ modelo1 <- get_resultados_hetero(base,
                                                 pts_lugaresFac = 0.05))
 
 resultados_promedios_modelo1 <- evaluacion_promedio_distancias(modelo1)
-mean(as.matrix(resultados_promedios_modelo1))
+
 
 # Modelo 2 ----
 modelo2 <- get_resultados_hetero(base,
@@ -471,7 +500,7 @@ modelo2 <- get_resultados_hetero(base,
                                                 pts_primeraCita = 0.25,
                                                 pts_lugaresFac = 0.05))
 resultados_promedios_modelo2 <- evaluacion_promedio_distancias(modelo2)
-mean(as.matrix(resultados_promedios_modelo2))
+
 
 # Modelo 3 ----
 modelo3 <- get_resultados_hetero(base,
@@ -481,7 +510,7 @@ modelo3 <- get_resultados_hetero(base,
                                                 pts_lugaresFac = 0.25))
 
 resultados_promedios_modelo3 <- evaluacion_promedio_distancias(modelo3)
-mean(as.matrix(resultados_promedios_modelo3))
+
 
 
 # Modelo 4 ----
@@ -492,7 +521,7 @@ modelo4 <- get_resultados_hetero(base,
                                                 pts_lugaresFac = 0.0))
 
 resultados_promedios_modelo4 <- evaluacion_promedio_distancias(modelo4)
-mean(as.matrix(resultados_promedios_modelo4))
+
 
 
 # Modelo 5 ----
@@ -503,7 +532,6 @@ modelo5 <- get_resultados_hetero(base,
                                                 pts_lugaresFac = 0.2))
 
 resultados_promedios_modelo5 <- evaluacion_promedio_distancias(modelo5)
-mean(as.matrix(resultados_promedios_modelo5))
 
 
 # Modelo 6 ----
@@ -514,7 +542,56 @@ modelo6 <- get_resultados_hetero(base,
                                                 pts_lugaresFac = 0.15))
 
 resultados_promedios_modelo6 <- evaluacion_promedio_distancias(modelo6)
-mean(as.matrix(resultados_promedios_modelo6))
 
 
-# Se conserva el modelo 5
+# Modelo 7 ----
+modelo7 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.5,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.2,
+                                                pts_lugaresFac = 0.0))
+
+resultados_promedios_modelo7 <- evaluacion_promedio_distancias(modelo7)
+
+# Modelo 8 ----
+modelo8 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.45,
+                                                pts_hobbies = 0.35,
+                                                pts_primeraCita = 0.15,
+                                                pts_lugaresFac = 0.05))
+
+resultados_promedios_modelo8 <- evaluacion_promedio_distancias(modelo8)
+
+
+# Modelo 9 ----
+modelo9 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.35,
+                                                pts_hobbies = 0.35,
+                                                pts_primeraCita = 0.25,
+                                                pts_lugaresFac = 0.05))
+
+resultados_promedios_modelo9 <- evaluacion_promedio_distancias(modelo9)
+
+
+# Modelo 10 ----
+modelo10 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.4,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.15,
+                                                pts_lugaresFac = 0.15))
+
+resultados_promedios_modelo10 <- evaluacion_promedio_distancias(modelo10)
+
+
+# Resumen de los resultados
+for (i in 1:10) {
+  objeto <- get(paste0("resultados_promedios_modelo", i))
+  resumen <- resumen_evaluacion(objeto)
+  print(paste("Resumen del modelo", i))
+  print(resumen)
+}
+# Se cpnserva el modelo 10
+
+
+# Parte 2: Recomendaciones para homosexuales  ----
+# Se usa el algoritmo de GaleyShapley con la modificación de roomies
