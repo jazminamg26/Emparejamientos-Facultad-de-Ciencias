@@ -99,12 +99,6 @@ separa_valores_columna <- function(df, columna) {
 muybien <- separa_valores_columna(prebase, "muybien")
 
 
-# Se comprueba con un correo que se repetia mucho
-baseComplete%>%
-  filter(correo=="albertodiaz120404@gmail.com")
-
-prebase%>%
-  filter(correo=="albertodiaz120404@gmail.com")
 
 # Analisis de texto ----
 
@@ -753,25 +747,25 @@ evaluacion <- function(modelo){
 
 # Modelos y evaluación -----
 
-# # Modelo 1 ----
-# modelo1 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.3,
-#                                                 pts_hobbies = 0.3,
-#                                                 pts_primeraCita = 0.15,
-#                                                 pts_lugaresFac = 0.05,
-#                                                 pts_texto = 0.2))
-# resultados_modelo1 <- evaluacion(modelo1)
+# Modelo 1 ----
+modelo1 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.3,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.15,
+                                                pts_lugaresFac = 0.05,
+                                                pts_texto = 0.2))
+resultados_modelo1 <- evaluacion(modelo1)
+
 #
-#
-# # Modelo 2 ----
-# modelo2 <- get_resultados_hetero(base,
-#                                  get_distancias(pts_busca = 0.2,
-#                                                 pts_hobbies = 0.3,
-#                                                 pts_primeraCita = 0.1,
-#                                                 pts_lugaresFac = 0.1,
-#                                                 pts_texto = 0.3))
-# resultados_modelo2 <- evaluacion(modelo2)
-#
+# Modelo 2 ----
+modelo2 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.2,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.1,
+                                                pts_lugaresFac = 0.1,
+                                                pts_texto = 0.3))
+resultados_modelo2 <- evaluacion(modelo2)
+
 # # Modelo 3 ----
 # modelo3 <- get_resultados_hetero(base,
 #                                  get_distancias(pts_busca = 0.25,

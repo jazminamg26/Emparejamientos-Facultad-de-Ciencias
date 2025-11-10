@@ -186,3 +186,335 @@ ggplot(lugares_muybien_por_genero, aes(fill=genero,
     axis.title = element_blank()
   )+
   labs(title = "Lugares preferidos para la primera cita", fill = "Categoría")
+
+
+# Matrices de distancias -------
+
+# Variables que se usarán
+usuarios <- unique(base$id)
+n_usuarios <- length(usuarios)
+
+compute_distance_matrix <- function(df, column, distance_function) {
+  n <- nrow(df)
+  dist_matrix <- matrix(0, n, n)
+  
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i != j) {
+        dist_matrix[i, j] <- distance_function(df[[column]][i], df[[column]][j])
+      }
+    }
+  }
+  return(dist_matrix)
+}
+
+
+
+jaccard_distance <- function(x, y) {
+  set_x <- strsplit(x, ",")[[1]]
+  set_y <- strsplit(y, ",")[[1]]
+  
+  intersec <- length(intersect(set_x, set_y))
+  union <- length(unique(c(set_x, set_y)))
+  
+  return(1 - (intersec / union))  # 1 - Jaccard Similarity
+}
+
+
+# Primera cita
+distancia_primeraCita <- function(df){
+  lugares_distance <- function(x1, x2, y1, y2, z1, z2) {
+    set_x1 <- strsplit(x1, ",")[[1]]  # muybien
+    set_x2 <- strsplit(x2, ",")[[1]]
+    set_z1 <- strsplit(z1, ",")[[1]]  # mal
+    set_z2 <- strsplit(z2, ",")[[1]]
+    
+    intersec_muybien <- length(intersect(set_x1, set_x2))
+    intersec_mal <- length(intersect(set_z1, set_z2))
+    
+    union_muybien <- length(unique(c(set_x1, set_x2)))
+    union_mal <- length(unique(c(set_z1, set_z2)))
+    
+    # Aplicamos la fórmula de distancia ponderada
+    score <- (3 * intersec_muybien + 1 * intersec_mal) / (3 * union_muybien + 1 * union_mal)
+    
+    return(1 - score)  # Convertimos a distancia
+  }
+  
+  n <- nrow(df)
+  dist_lugares <- matrix(0, n, n)
+  
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i != j) {
+        dist_lugares[i, j] <- lugares_distance(df$muybien[i], df$muybien[j], df$indiferente[i], df$indiferente[j], df$mal[i], df$mal[j])
+      }
+    }
+  }
+  return(dist_lugares)
+}
+dist_primeraCita <- distancia_primeraCita(base)
+
+# Búsqueda
+distancia_busqueda <- function(df){
+  
+  busca_distance_ordinal <- function(x, y) {
+    valores <- c("Algo casual" = -0.5, "Amistad" = 0, "Una relación" = 0.5)
+    
+    return(abs(valores[x] - valores[y]))
+  }
+  
+  
+  dist_busca_ordinal <- compute_distance_matrix(df, "busca", busca_distance_ordinal)
+  
+  return(dist_busca_ordinal)
+}
+dist_busqueda <- distancia_busqueda(base)
+
+# Lugares de la facultad
+dist_lugaresFac <- compute_distance_matrix(base, "lugares", jaccard_distance)
+
+# Hobbies
+dist_hobbies <- compute_distance_matrix(base, "hobbies", jaccard_distance)
+
+
+
+
+get_distancias <- function(pts_busca,
+                           pts_hobbies,
+                           pts_primeraCita,
+                           pts_lugaresFac){
+  
+  distancias <- as.data.frame((pts_busca * dist_busqueda) +
+                                (pts_hobbies * dist_hobbies) +
+                                (pts_primeraCita * dist_primeraCita) +
+                                (pts_lugaresFac * dist_lugaresFac) 
+  )
+  row.names(distancias) <- usuarios
+  names(distancias) <- usuarios
+  return(distancias)
+}
+
+
+get_preferencias <- function(ids_renglones, ids_columnas, distancias){
+  
+  distancias_seleccionadas <- distancias[ids_renglones, ids_columnas]
+  dim(distancias_seleccionadas)
+  usuarios <- names(distancias_seleccionadas)
+  length(usuarios)
+  length(ids_renglones)
+  
+  distancias_seleccionadas <- distancias_seleccionadas%>%
+    mutate(id = ids_renglones)
+  preferencias <- data.frame(matrix(NA, nrow = length(ids_renglones), ncol = 0))
+  
+  
+  for (usuario in usuarios) {
+    # usuario <- "1"
+    
+    preferencias_usuario <- distancias_seleccionadas%>%
+      select(usuario, id)%>%
+      rename(distancia = usuario)%>%
+      arrange(distancia)%>%
+      select(id)%>%pull()
+    
+    preferencias <- cbind(preferencias, preferencias_usuario)
+    
+  }
+  
+  names(preferencias) <- usuarios
+  
+  return(preferencias)
+}
+
+
+# Parte 1: Recomendaciones para heterosexuales ----
+
+get_resultados_hetero <- function(base, distancias){
+  
+  ids_heterosexuales <- base %>%
+    filter(
+      (genero == "Hombre" & gustos == "Mujeres") | (genero == "Mujer" & gustos == "Hombres") |
+        (genero == "Hombre" & gustos == "Ambos") | (genero == "Mujer" & gustos == "Ambos")
+    )%>%
+    distinct(id, .keep_all = TRUE)%>%distinct(id)%>%pull()
+  
+  
+  ids_hombres_hetero <- base%>%
+    filter(id %in% ids_heterosexuales)%>%
+    filter(genero == "Hombre")%>%
+    pull(id)
+  
+  
+  ids_mujeres_hetero <- base%>%
+    filter(id %in% ids_heterosexuales)%>%
+    filter(genero == "Mujer")%>%
+    pull(id)
+  
+  
+  pref_h_mujeres <- get_preferencias(ids_hombres_hetero,ids_mujeres_hetero, distancias)
+  pref_h_hombres <- get_preferencias(ids_mujeres_hetero,ids_hombres_hetero, distancias)
+  
+  
+  # Número de plazas por mujer
+  mujeres_slots <- rep(2,length(ids_mujeres_hetero))
+  
+  resultado_heterosexuales <- galeShapley.collegeAdmissions(pref_h_hombres, pref_h_mujeres, slots = mujeres_slots)
+  
+  emparejamientos_hombres <- as.data.frame(resultado_heterosexuales$matched.students)%>%
+    mutate(hombre = ids_hombres_hetero)%>%
+    left_join(as.data.frame(list(mujer = names(pref_h_mujeres)))%>%
+                mutate(V1 = row_number()))%>%
+    select(hombre, mujer)
+  
+  emparejamientos_mujeres_heteros <- as.data.frame(resultado_heterosexuales$matched.colleges)%>%
+    mutate(mujer = ids_mujeres_hetero)%>%
+    left_join(as.data.frame(list(hombre1 = names(pref_h_hombres)))%>%
+                mutate(V1 = row_number()))%>%
+    left_join(as.data.frame(list(hombre2 = names(pref_h_hombres)))%>%
+                mutate(V2 = row_number()))%>%
+    select(mujer, hombre1, hombre2)
+  
+  return(list(emparejamientos_hombres, emparejamientos_mujeres_heteros))
+  
+}
+
+evaluacion_promedio_distancias <- function(modelo){
+  
+  
+  comparar_resultados_por_id <- function(id, modelo) {
+    
+    emparejamientos_mujeres_heteros <- modelo[[2]]
+    
+    # Entre más cerca de uno es mejor ya que es cuánto nivel de porcentaje comparten
+    # Por ejemplo si le gusta Cocinar y hacer ejercicio y al hombre solo cocinar, tiene .5
+    filter_base_emparejamientos_mujeres_heteros <- function(idSeleccionado){
+      emparejamientos_mujeres_heteros_filtrado <- emparejamientos_mujeres_heteros%>%
+        filter(mujer==idSeleccionado)
+      
+      base_filtrada <- base%>%
+        filter(id %in% c(emparejamientos_mujeres_heteros_filtrado$mujer,
+                         emparejamientos_mujeres_heteros_filtrado$hombre1,
+                         emparejamientos_mujeres_heteros_filtrado$hombre2))
+      
+    }
+    
+    
+    
+    df = filter_base_emparejamientos_mujeres_heteros(id)
+    # Filtrar el registro de referencia
+    referencia <- df %>% filter(id == !!id)
+    
+    if (nrow(referencia) == 0) {
+      stop("El ID no se encuentra en el data frame.")
+    }
+    
+    # Columnas a evaluar
+    cols <- c("muybien", "mal", "busca", "hobbies", "lugares")
+    referencia_listas <- lapply(referencia[cols], function(x) unlist(strsplit(as.character(x), ",")))
+    
+    # Función para encontrar coincidencias y calcular la proporción
+    encontrar_coincidencias <- function(fila) {
+      sapply(cols, function(col) {
+        valores <- unlist(strsplit(as.character(fila[[col]]), ","))
+        compartidos <- valores[valores %in% referencia_listas[[col]]]
+        ifelse(length(referencia_listas[[col]]) > 0, length(compartidos) / length(referencia_listas[[col]]), 0)
+      })
+    }
+    
+    # Aplicar la función a todas las filas
+    coincidencias <- do.call(rbind, lapply(1:nrow(df), function(i) encontrar_coincidencias(df[i, ]))) %>%
+      as.data.frame() %>%
+      mutate(id = df$id) %>%  # Agregar ID
+      filter(id != !!id) %>%  # Quitar la fila de referencia
+      select(-id)  # Eliminar columna de ID para promediar
+    
+    # Calcular promedio por columna
+    promedios <- colMeans(coincidencias, na.rm = TRUE) %>% round(2)
+    
+    return(as.data.frame(t(promedios)))  # Transponer para visualizar mejor
+  }
+  
+  emparejamientos_mujeres_heteros <- modelo[[2]]
+  resultados <- data.frame(matrix(ncol = 6, nrow = 0))
+  
+  for(idSeleccionado in emparejamientos_mujeres_heteros$mujer){
+    resultado <- comparar_resultados_por_id(idSeleccionado, modelo)%>%mutate(id=idSeleccionado)
+    resultados <- rbind(resultado, resultados)
+  }
+  
+  resultados_finales <- as.data.frame(list(muybien = mean(resultados$muybien),
+                                           mal = mean(resultados$mal),
+                                           busca = mean(resultados$busca),
+                                           hobbies = mean(resultados$hobbies),
+                                           lugares = mean(resultados$lugares)
+  ))
+  
+  return(resultados_finales)
+}
+
+# Entre más cerca de 1 mejor
+# Modelo 1 ----
+modelo1 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.4,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.25,
+                                                pts_lugaresFac = 0.05))
+
+resultados_promedios_modelo1 <- evaluacion_promedio_distancias(modelo1)
+mean(as.matrix(resultados_promedios_modelo1))
+
+# Modelo 2 ----
+modelo2 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.3,
+                                                pts_hobbies = 0.4,
+                                                pts_primeraCita = 0.25,
+                                                pts_lugaresFac = 0.05))
+resultados_promedios_modelo2 <- evaluacion_promedio_distancias(modelo2)
+mean(as.matrix(resultados_promedios_modelo2))
+
+# Modelo 3 ----
+modelo3 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.25,
+                                                pts_hobbies = 0.25,
+                                                pts_primeraCita = 0.25,
+                                                pts_lugaresFac = 0.25))
+
+resultados_promedios_modelo3 <- evaluacion_promedio_distancias(modelo3)
+mean(as.matrix(resultados_promedios_modelo3))
+
+
+# Modelo 4 ----
+modelo4 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.4,
+                                                pts_hobbies = 0.4,
+                                                pts_primeraCita = 0.2,
+                                                pts_lugaresFac = 0.0))
+
+resultados_promedios_modelo4 <- evaluacion_promedio_distancias(modelo4)
+mean(as.matrix(resultados_promedios_modelo4))
+
+
+# Modelo 5 ----
+modelo5 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.3,
+                                                pts_hobbies = 0.3,
+                                                pts_primeraCita = 0.2,
+                                                pts_lugaresFac = 0.2))
+
+resultados_promedios_modelo5 <- evaluacion_promedio_distancias(modelo5)
+mean(as.matrix(resultados_promedios_modelo5))
+
+
+# Modelo 6 ----
+modelo6 <- get_resultados_hetero(base,
+                                 get_distancias(pts_busca = 0.25,
+                                                pts_hobbies = 0.25,
+                                                pts_primeraCita = 0.15,
+                                                pts_lugaresFac = 0.15))
+
+resultados_promedios_modelo6 <- evaluacion_promedio_distancias(modelo6)
+mean(as.matrix(resultados_promedios_modelo6))
+
+
+# Se conserva el modelo 5
