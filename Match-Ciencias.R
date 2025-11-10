@@ -76,114 +76,7 @@ tipografia <- "Poppins"
 base
 
 
-# Lugares preferidos para la primera cita -----
-split_muyBien <- base%>% 
-  separate_rows(muybien , sep = ", ")
-
-n_split_muyBien <- split_muyBien %>%
-  count(muybien) %>%
-  mutate(
-    pct = round(100 * n / sum(n), 1),
-    nombre = case_when(
-      muybien == "Ir por un helado" ~ "Ir por \nun helado",     
-      TRUE ~ as.character(muybien)
-    ),
-    etiqueta_pct = paste0(pct, "%")
-  )%>%
-  arrange(desc(n))
-n_split_muyBien
-# --- Colores personalizados ---
-colores <- c("#386641", "#F97A00", "#FFCF71", "#EA5B6F", "#78C841", "#FFD93D", "#BBC863")
-
-# --- Gráfico de pastel ---
-ggplot(n_split_muyBien, aes(x = "", y = n, fill = nombre)) +
-  geom_bar(stat = "identity", width = 1, color = "white") +
-  coord_polar(theta = "y") +
-  scale_fill_manual(values = colores) +
-  theme_void(base_family = "Poppins") +
-  theme(plot.title = element_text(size=18, family = "Poppins"),
-        legend.title = element_blank(),
-        legend.text = element_text(size=12, family = "Poppins"))+
-  # theme_bw(base_family = "Poppins")+
-  labs(title = "Lugares preferidos para la primera cita", fill = "Categoría")
-
-
-
-# Lugares menos preferidos para la primera cita -----
-split_mal <- base%>% 
-  separate_rows(mal , sep = ", ")
-
-n_split_mal <- split_mal %>%
-  count(mal) %>%
-  mutate(
-    pct = round(100 * n / sum(n), 1),
-    nombre = case_when(
-      mal == "Ir por un helado" ~ "Ir por \nun helado",     
-      TRUE ~ as.character(mal)
-    ),
-    etiqueta_pct = paste0(pct, "%")
-  )%>%
-  arrange(desc(n))
-
-n_split_mal
-
-# --- Colores personalizados ---
-colores <- c("#386641", "#F97A00", "#FFCF71", "#EA5B6F", "#78C841", "#FFD93D", "#BBC863")
-
-# --- Gráfico de pastel ---
-ggplot(n_split_mal, aes(x = mal, y = n)) +
-  geom_bar(stat = "identity")
-
-ggplot(n_split_mal, aes(x = "", y = n, fill = nombre)) +
-  geom_bar(stat = "identity", width = 1, color = "white") +
-  coord_polar(theta = "y") +
-  scale_fill_manual(values = colores) +
-  theme_void(base_family = "Poppins") +
-  theme(plot.title = element_text(size=18, family = "Poppins"),
-        legend.title = element_blank(),
-        legend.text = element_text(size=12, family = "Poppins"))+
-  # theme_bw(base_family = "Poppins")+
-  labs(title = "Lugares más rechazados para la primera cita", fill = "Categoría")
-
-
-
-
-# Lugares indiferentes para la primera cita -----
-split_indi <- base%>% 
-  separate_rows(indiferente , sep = ", ")
-
-n_split_indi <- split_indi %>%
-  count(indiferente) %>%
-  mutate(
-    pct = round(100 * n / sum(n), 1),
-    nombre = case_when(
-      indiferente == "Ir por un helado" ~ "Ir por \nun helado",     
-      TRUE ~ as.character(indiferente)
-    ),
-    etiqueta_pct = paste0(pct, "%")
-  )%>%
-  arrange(desc(n))
-
-n_split_indi
-
-# --- Colores personalizados ---
-colores <- c("#386641", "#F97A00", "#FFCF71", "#EA5B6F", "#78C841", "#FFD93D", "#BBC863")
-
-# --- Gráfico de pastel ---
-ggplot(n_split_indi, aes(x = "", y = n, fill = nombre)) +
-  geom_bar(stat = "identity", width = 1, color = "white") +
-  coord_polar(theta = "y") +
-  scale_fill_manual(values = colores) +
-  theme_void(base_family = "Poppins") +
-  theme(plot.title = element_text(size=18, family = "Poppins"),
-        legend.title = element_blank(),
-        legend.text = element_text(size=12, family = "Poppins"))+
-  # theme_bw(base_family = "Poppins")+
-  labs(title = "Lugares indiferentes  para la primera cita", fill = "Categoría")
-# No agregar esta gráfica 
-
 # Género de los participantes -----
-
 genero <- base %>%
   count(genero)%>%
   mutate(
@@ -207,20 +100,70 @@ ggplot(genero, aes(x = "", y = n, fill = genero)) +
              position = position_stack(vjust = 0.5),
              show.legend = FALSE) 
 
-# Género de los participantes -----
+# Lugares preferidos para la primera cita -----
+split_muyBien <- base%>% 
+  separate_rows(muybien , sep = ", ")
 
-muybien_genero <- base%>% 
-  separate_rows(muybien , sep = ", ")%>%
+n_split_muyBien <- split_muyBien %>%
+  count(muybien) %>%
+  mutate(
+    pct = round(100 * n / sum(n), 1),
+    nombre = case_when(
+      muybien == "Ir por un helado" ~ "Ir por \nun helado",     
+      TRUE ~ as.character(muybien)
+    ),
+    etiqueta_pct = paste0(pct, "%")
+  )%>%
+  arrange(desc(n))
+n_split_muyBien
+
+ggplot(n_split_muyBien, aes(x = "", y = n, fill = nombre)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = c("#386641", "#F97A00", "#FFCF71", "#EA5B6F", "#78C841", "#FFD93D", "#BBC863")) +
+  theme_void(base_family = "Poppins") +
+  theme(plot.title = element_text(size=18, family = "Poppins"),
+        legend.title = element_blank(),
+        legend.text = element_text(size=12, family = "Poppins"))+
+  # theme_bw(base_family = "Poppins")+
+  labs(title = "Lugares preferidos para la primera cita", fill = "Categoría")
+
+
+
+# Distribución de lugares favoritos por género -----
+
+base_lugares_muy_bien_split <- base%>% 
+  separate_rows(muybien , sep = ", ")
+
+lugar_muybien_por_genero <- base_lugares_muy_bien_split%>%
   count(genero, muybien)%>%
-  mutate(pct = round((100 * n / sum(n)), 1))
-muybien_genero
-ggplot(muybien_genero, aes(fill=genero, y=pct, x=muybien)) + 
-  geom_bar(position="fill", stat="identity")
+  arrange(muybien)%>%
+  group_by(genero)%>%
+  mutate(porcentaje_por_genero_lugar = round((100 * n / sum(n)), 1))%>%
+  ungroup()%>%
+  group_by(muybien)%>%
+  mutate(porcentaje = round((100 * porcentaje_por_genero_lugar / sum(porcentaje_por_genero_lugar)), 1))%>%
+  arrange(muybien)
+  
+lugar_muybien_por_genero
+
+ggplot(lugar_muybien_por_genero, aes(fill=genero, 
+                                     y=porcentaje, 
+                                     x=muybien)) + 
+  geom_bar(position="fill", stat="identity")+
+  scale_fill_manual(values = c("#9ECAD6", "#FFA4A4")) +
+  theme_minimal()+
+  theme(
+        text = element_text(size=18, family = "Poppins"),
+        plot.title = element_text(size=18, family = "Poppins"),
+        legend.text = element_text(size=12, family = "Poppins"),
+        legend.title = element_blank(),
+        axis.title = element_blank()
+        )+
+  labs(title = "Distribución de lugares favoritos por género", fill = "Categoría")
 
 
-
-
-
+# Gustos por género -----
 
 gustos_genero <- base %>%
   count(genero, gustos)%>%
