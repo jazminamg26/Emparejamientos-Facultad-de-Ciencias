@@ -226,8 +226,6 @@ ggplot(hombres_busqueda, aes(x = "", y = n, fill = busca)) +
 
 
 
-
-
 # Hobbies --------
 
 split_hobbies <- base%>% 
