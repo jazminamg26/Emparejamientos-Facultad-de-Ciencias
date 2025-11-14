@@ -1,290 +1,231 @@
-library(sets)
-library(dplyr)
-library(janitor);library(stringi);library(stringr)
-library(tm);library(tidyr)
-library(matchingR);library(stringdist);library(tm)
+library(sets);library(dplyr)
+library(janitor);library(stringi);
+library(stringr);library(tm);
+library(tidyr);library(matchingR);
+library(stringdist);library(tm)
 library(proxy);library(glue)
 library(showtext);library(ggplot2)
 library(tidyverse)
 
 
+base <- read.csv("base.csv")
 
-setwd("C:/Users/Jazmin/Documents/Ciencia de datos/Proyecto")
-
-baseCompleteRaw <- read.csv("respuestas.csv")%>%
-  clean_names()
-
-# Limpieza de la base ----------------
-names(baseCompleteRaw)
-
-# Se quitan columnas que no se van a utilizar y también se renombran 
-# las otras para que sea más fácil trabajar
-
-baseComplete <- baseCompleteRaw%>%
-  select(-para_la_primera_cita_jueves,
-         -para_la_primera_cita_viernes,
-         -columna_12,
-         -columna_15,
-         -x_tienes_alguna_alergia_o_restriccion_alimentaria,
-         -si_tienes_algun_comentario_o_pregunta_escribelo_a_continuacion)%>%
-  dplyr::rename(hora = marca_temporal,
-                correo = direccion_de_correo_electronico,
-                muybien = para_la_primera_cita_perfecto,
-                indiferente = para_la_primera_cita_indiferente,
-                mal = para_la_primera_cita_para_nada,
-                nombre = x_como_te_llamas,
-                genero = x_como_te_identificas,
-                gustos = x_que_te_gusta,
-                busca = x_principalmente_que_estas_buscando,
-                lugares = lugares_favoritos_de_la_facultad,
-                comentario = escribe_algo_que_le_quieras_decir_a_tu_match_aqui_puedes_poner_cualquier_cosa_por_ejemplo_una_presentacion_sobre_ti_por_que_decidiste_estudiar_en_ciencias_que_te_gustaria_hacer_el_14_de_febrero_si_ya_estas_yendo_a_terapia_v_etc
-  )%>%
-  # se modifica lo de la fecha y hora
-  mutate(hora = as.POSIXlt(hora, format = "%d/%m/%Y %H:%M:%S")) %>%
-  mutate(busca = gsub(" >:)","", busca),
-         busca = gsub(" :)","", busca),
-         busca = gsub(" <3","", busca))%>%
-  mutate(grupo = case_when(
-    (genero=="Hombre" & gustos == c("Ambos")) ~ "HA",
-    (genero=="Hombre" & gustos == c("Hombres")) ~ "HH",
-    (genero=="Hombre" & gustos == c("Mujeres")) ~ "HM",
-    (genero=="Mujer" & gustos == c("Ambos")) ~ "MA",
-    (genero=="Mujer" & gustos == c("Hombres")) ~ "MH",
-    (genero=="Mujer" & gustos == c("Mujeres")) ~ "MM"
-  ))%>%
-  mutate(nombre = gsub("^\\s+|\\s+$", "", nombre))
+# Análisis exploratorio ----------------
+font_add_google(c("Poppins"))
+showtext_auto()
+tipografia <- "Poppins"
+base
 
 
-# Hay personas que modifican varias veces tu correo
-baseComplete%>%
-  count(correo)%>%
-  filter(n>1)
+# Género de los participantes -----
+generos <- base %>%
+  count(genero)%>%
+  rename("totalGenero" = n)
+
+porcentaje_generos <- generos%>%
+  mutate(
+    pct = round((100 * totalGenero / sum(totalGenero)), 1),
+    etiqueta_pct = paste0(pct, "%"))%>%
+  arrange(desc(totalGenero))
+
+ggplot(porcentaje_generos, aes(x = "", y = totalGenero, fill = genero)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = c("#F16821", "#FFC900")) +
+  theme_void(base_family = "Poppins") +
+  theme(plot.title = element_text(size=18, family = "Poppins"),
+        legend.title = element_blank(),
+        legend.text = element_text(size=15, family = "Poppins"))+
+  # theme_bw(base_family = "Poppins")+
+  labs(title = "Género de los participantes", fill = "Categoría")+
+  geom_label(aes(label = etiqueta_pct),
+             position = position_stack(vjust = 0.5),
+             show.legend = FALSE)
 
 
-# Se quitan los duplicados y se conserva el registro más reciente
-base <- baseComplete%>%
-  group_by(correo) %>%
-  filter(hora == max(hora)) %>%
-  arrange(hora)%>%
-  ungroup()%>%
-  mutate(id = row_number())
 
 
-# 
-# # Análisis exploratorio ----------------
-# font_add_google(c("Poppins"))
-# showtext_auto()
-# tipografia <- "Poppins"
-# base
-# 
-# 
-# # Género de los participantes -----
-# generos <- base %>%
-#   count(genero)%>%
-#   rename("totalGenero" = n)
-# 
-# porcentaje_generos <- generos%>%
-#   mutate(
-#     pct = round((100 * totalGenero / sum(totalGenero)), 1),
-#     etiqueta_pct = paste0(pct, "%"))%>%
-#   arrange(desc(totalGenero))
-# 
-# ggplot(porcentaje_generos, aes(x = "", y = totalGenero, fill = genero)) +
-#   geom_bar(stat = "identity", width = 1, color = "white") +
-#   coord_polar(theta = "y") +
-#   scale_fill_manual(values = c("#F16821", "#FFC900")) +
-#   theme_void(base_family = "Poppins") +
-#   theme(plot.title = element_text(size=18, family = "Poppins"),
-#         legend.title = element_blank(),
-#         legend.text = element_text(size=12, family = "Poppins"))+
-#   # theme_bw(base_family = "Poppins")+
-#   labs(title = "Género de los participantes", fill = "Categoría")+
-#   geom_label(aes(label = etiqueta_pct),
-#              position = position_stack(vjust = 0.5),
-#              show.legend = FALSE) 
-# 
-# 
-# 
-# 
-# # Gustos por género -----
-# 
-# gustos_genero <- base %>%
-#   count(genero, gustos)%>%
-#   group_by(genero) %>%
-#   mutate(porcentaje = round(n / sum(n) * 100, 1),
-#          porcentaje = paste0(porcentaje, "%"))
-# 
-# gustos_genero
-# 
-# 
-# # Preferencias de busqueda -----
-# 
-# busca_genero <- base %>%
-#   count(genero, busca)%>%
-#   group_by(genero) %>%
-#   mutate(porcentaje = round(n / sum(n) * 100, 1),
-#          porcentaje = paste0(porcentaje, "%"))
-# 
-# 
-# mujeres_busqueda <- busca_genero%>%
-#   filter(genero == "Mujer")
-# 
-# 
-# ggplot(mujeres_busqueda, aes(x = "", y = n, fill = busca)) +
-#   geom_bar(stat = "identity", width = 1, color = "white") +
-#   coord_polar(theta = "y") +
-#   
-#   # Colores personalizados del gráfico
-#   scale_fill_manual(values = c("#FFC4C4", "#EE6983", "#850E35")) +
-#   
-#   # Etiquetas con color de texto dinámico según el fill
-#   geom_label(
-#     aes(
-#       label = porcentaje,
-#       color = after_scale(
-#         ifelse(
-#           # Aquí decides cuándo usar texto blanco o negro según el tono del fill
-#           fill %in% c("#850E35", "#EE6983"), "white", "black"
-#         )
-#       )
-#     ),
-#     position = position_stack(vjust = 0.5),
-#     show.legend = FALSE,
-#     label.padding = unit(0.25, "lines"),
-#     size = 4,
-#     family = "Poppins"
-#   ) +
-#   
-#   # Escala del color de texto (solo para que ggplot lo acepte)
-#   scale_color_identity() +
-#   
-#   # Tema general
-#   theme_void(base_family = "Poppins") +
-#   theme(
-#     plot.title = element_text(size = 18, family = "Poppins"),
-#     legend.title = element_blank(),
-#     legend.text = element_text(size = 12, family = "Poppins"),
-#     legend.position = "bottom"
-#   ) +
-#   labs(
-#     title = "¿Qué buscan las mujeres?",
-#     fill = "Categoría"
-#   )
-# 
-# 
-# 
-# 
-# 
-# hombres_busqueda <- busca_genero%>%
-#   filter(genero == "Hombre")
-# 
-# 
-# ggplot(hombres_busqueda, aes(x = "", y = n, fill = busca)) +
-#   geom_bar(stat = "identity", width = 1, color = "white") +
-#   coord_polar(theta = "y") +
-#   scale_fill_manual(values = c("#B9E5E8", "#7AB2D3", "#4A628A")) +
-# 
-#   geom_label(
-#     aes(
-#       label = porcentaje,
-#       color = after_scale(
-#         ifelse(
-#           # Aquí decides cuándo usar texto blanco o negro según el tono del fill
-#           fill %in% c("#4A628A", "#7AB2D3"), "white", "black"
-#         )
-#       )
-#     ),
-#     position = position_stack(vjust = 0.5),
-#     show.legend = FALSE,
-#     label.padding = unit(0.25, "lines"),
-#     size = 4,
-#     family = "Poppins"
-#   ) +
-#   
-#   # Escala del color de texto (solo para que ggplot lo acepte)
-#   scale_color_identity() +
-#   
-#   # Tema general
-#   theme_void(base_family = "Poppins") +
-#   theme(
-#     plot.title = element_text(size = 18, family = "Poppins"),
-#     legend.title = element_blank(),
-#     legend.text = element_text(size = 12, family = "Poppins"),
-#     legend.position = "bottom"
-#   ) +
-#   
-#   labs(
-#     title = "¿Qué buscan los hombres?",
-#     fill = "Categoría"
-#   )
-# 
-# 
-# 
-# # Hobbies --------
-# 
-# split_hobbies <- base%>% 
-#   separate_rows(hobbies , sep = ", ")
-# 
-# hobbies_por_genero <- split_hobbies%>%
-#   count(genero, hobbies)%>%
-#   right_join(generos, by="genero")%>%
-#   mutate(hobbiePorGenero = round(100 * n / totalGenero, 1))%>%    
-#   mutate(
-#     hobbiePorGenero = round(100 * n / totalGenero, 1),   
-#     hobbies = as_factor(hobbies),
-#     hobbies = fct_reorder(hobbies, hobbiePorGenero, .desc = TRUE)
-#   )
-# 
-# 
-# hobbies_por_genero
-# 
-# ggplot(hobbies_por_genero, aes(fill=genero, 
-#                                      y=hobbiePorGenero, 
-#                                      x=hobbies)) + 
-#   geom_bar(position="dodge", stat="identity")+
-#   scale_fill_manual(values = c("#F16821", "#FFC900")) +
-#   theme_minimal()+
-#   theme(
-#     text = element_text(size=18, family = "Poppins"),
-#     plot.title = element_text(size=18, family = "Poppins"),
-#     legend.text = element_text(size=12, family = "Poppins"),
-#     legend.title = element_blank(),
-#     axis.title = element_blank()
-#   )+
-#   labs(title = "Hobbies", fill = "Categoría")
-# 
-# 
-# # Distribución de lugares favoritos por género -----
-# 
-# split_lugares_muybien <- base%>% 
-#   separate_rows(muybien , sep = ", ")
-# 
-# lugares_muybien_por_genero <- split_lugares_muybien %>%
-#   count(genero, muybien) %>%                 
-#   right_join(generos, by = "genero") %>%    
-#   mutate(
-#     lugarPorGenero = round(100 * n / totalGenero, 1),   
-#     muybien = as_factor(muybien),
-#     muybien = fct_reorder(muybien, lugarPorGenero, .desc = TRUE)
-#   )
-# 
-# lugares_muybien_por_genero
-# 
-# ggplot(lugares_muybien_por_genero, aes(fill=genero, 
-#                                y=lugarPorGenero, 
-#                                x=muybien)) + 
-#   geom_bar(position="dodge", stat="identity")+
-#   scale_fill_manual(values = c( "#F16821", "#FFC900")) +
-#   theme_minimal()+
-#   theme(
-#     text = element_text(size=18, family = "Poppins"),
-#     plot.title = element_text(size=18, family = "Poppins"),
-#     legend.text = element_text(size=12, family = "Poppins"),
-#     legend.title = element_blank(),
-#     axis.title = element_blank()
-#   )+
-#   labs(title = "Lugares preferidos para la primera cita", fill = "Categoría")
-# 
+# Gustos por género -----
+
+gustos_genero <- base %>%
+  count(genero, gustos)%>%
+  group_by(genero) %>%
+  mutate(porcentaje = round(n / sum(n) * 100, 1),
+         porcentaje = paste0(porcentaje, "%"))
+
+gustos_genero
+
+
+# Preferencias de busqueda -----
+
+busca_genero <- base %>%
+  count(genero, busca)%>%
+  group_by(genero) %>%
+  mutate(porcentaje = round(n / sum(n) * 100, 1),
+         porcentaje = paste0(porcentaje, "%"))
+
+
+mujeres_busqueda <- busca_genero%>%
+  filter(genero == "Mujer")
+
+
+ggplot(mujeres_busqueda, aes(x = "", y = n, fill = busca)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +
+
+  # Colores personalizados del gráfico
+  scale_fill_manual(values = c("#FFC4C4", "#EE6983", "#850E35")) +
+
+  # Etiquetas con color de texto dinámico según el fill
+  geom_label(
+    aes(
+      label = porcentaje,
+      color = after_scale(
+        ifelse(
+          # Aquí decides cuándo usar texto blanco o negro según el tono del fill
+          fill %in% c("#850E35", "#EE6983"), "white", "black"
+        )
+      )
+    ),
+    position = position_stack(vjust = 0.5),
+    show.legend = FALSE,
+    label.padding = unit(0.25, "lines"),
+    size = 4,
+    family = "Poppins"
+  ) +
+
+  # Escala del color de texto (solo para que ggplot lo acepte)
+  scale_color_identity() +
+
+  # Tema general
+  theme_void(base_family = "Poppins") +
+  theme(
+    plot.title = element_text(size = 18, family = "Poppins"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 12, family = "Poppins"),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "¿Qué buscan las mujeres?",
+    fill = "Categoría"
+  )
+
+
+
+
+
+hombres_busqueda <- busca_genero%>%
+  filter(genero == "Hombre")
+
+
+ggplot(hombres_busqueda, aes(x = "", y = n, fill = busca)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = c("#B9E5E8", "#7AB2D3", "#4A628A")) +
+
+  geom_label(
+    aes(
+      label = porcentaje,
+      color = after_scale(
+        ifelse(
+          # Aquí decides cuándo usar texto blanco o negro según el tono del fill
+          fill %in% c("#4A628A", "#7AB2D3"), "white", "black"
+        )
+      )
+    ),
+    position = position_stack(vjust = 0.5),
+    show.legend = FALSE,
+    label.padding = unit(0.25, "lines"),
+    size = 4,
+    family = "Poppins"
+  ) +
+
+  # Escala del color de texto (solo para que ggplot lo acepte)
+  scale_color_identity() +
+
+  # Tema general
+  theme_void(base_family = "Poppins") +
+  theme(
+    plot.title = element_text(size = 18, family = "Poppins"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 12, family = "Poppins"),
+    legend.position = "bottom"
+  ) +
+
+  labs(
+    title = "¿Qué buscan los hombres?",
+    fill = "Categoría"
+  )
+
+
+
+# Hobbies --------
+
+split_hobbies <- base%>%
+  separate_rows(hobbies , sep = ", ")
+
+hobbies_por_genero <- split_hobbies%>%
+  count(genero, hobbies)%>%
+  right_join(generos, by="genero")%>%
+  mutate(hobbiePorGenero = round(100 * n / totalGenero, 1))%>%
+  mutate(
+    Porcentaje = round(100 * n / totalGenero, 1),
+    hobbies = as_factor(hobbies),
+    hobbies = fct_reorder(hobbies, Porcentaje, .desc = TRUE)
+  )
+
+
+hobbies_por_genero
+
+ggplot(hobbies_por_genero, aes(fill=genero,
+                                     y=Porcentaje,
+                                     x=hobbies)) +
+  geom_bar(position="dodge", stat="identity")+
+  scale_fill_manual(values = c("#F16821", "#FFC900")) +
+  theme_minimal()+
+  theme(
+    text = element_text(size=18, family = "Poppins"),
+    plot.title = element_text(size=18, family = "Poppins"),
+    legend.text = element_text(size=12, family = "Poppins"),
+    legend.title = element_blank(),
+    axis.title.x  = element_blank(),
+    axis.title.y = element_text()
+  )+
+  labs(title = "Hobbies", fill = "Categoría")
+
+
+# Distribución de lugares favoritos por género -----
+
+split_lugares_muybien <- base%>%
+  separate_rows(muybien , sep = ", ")
+
+lugares_muybien_por_genero <- split_lugares_muybien %>%
+  count(genero, muybien) %>%
+  right_join(generos, by = "genero") %>%
+  mutate(
+    Porcentaje = round(100 * n / totalGenero, 1),
+    muybien = as_factor(muybien),
+    muybien = fct_reorder(muybien, Porcentaje, .desc = TRUE)
+  )
+
+lugares_muybien_por_genero
+
+ggplot(lugares_muybien_por_genero, aes(fill=genero,
+                               y=Porcentaje,
+                               x=muybien)) +
+  geom_bar(position="dodge", stat="identity")+
+  scale_fill_manual(values = c( "#F16821", "#FFC900")) +
+  theme_minimal()+
+  theme(
+    text = element_text(size=18, family = "Poppins"),
+    plot.title = element_text(size=18, family = "Poppins"),
+    legend.text = element_text(size=12, family = "Poppins"),
+    legend.title = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text()
+  )+
+  labs(title = "Lugares preferidos para la primera cita", fill = "Categoría")
+
 
 # Matrices de distancias -------
 
@@ -632,7 +573,7 @@ modelo5 <- get_resultados_hetero(base,
                                                 pts_primeraCita = 0.2,
                                                 pts_lugaresFac = 0.2))
 
-resultados_promedios_modelo5 <- evaluacion_promedio_distancias(modelo5)
+resultados_promedios_modelo5 <- evaluacion_distancias(modelo5)
 
 resultados_distancias_modelo5 <- evaluacion_distancias(modelo5)
 resultados_distancias_modelo5
@@ -837,32 +778,85 @@ emparejamientos <- emparejamientosComplete%>% drop_na()
 dim(emparejamientosComplete)
 dim(emparejamientos)
 
-# Ahora es importante saber su distancia
+# Hasta aquí ya se tienen todos los resultados finales
+emparejamientos
+
+dist_busqueda
+dist_hobbies
+dist_lugaresFac
+dist_primeraCita
+resultados_distancias_modelo1
+
+
+distancias <- as.data.frame(dist_busqueda + 
+                              dist_hobbies + 
+                              dist_primeraCita +
+                              dist_lugaresFac) / 4
+
+max(distancias)
+min(distancias)
+
+get_summary_distancias <- function(emparejamientos){
+  # Ahora es importante saber su distancia
+  distancias <- as.matrix(distancias)
+  rownames(distancias) <- colnames(distancias) <- usuarios
+  emparejamientos$distanciaGeneral <- mapply(function(p1, p2) distancias[p1, p2],
+                                             emparejamientos$persona1,
+                                             emparejamientos$persona2)
+  
+  # Distancia de las busquedas
+  rownames(dist_busqueda) <- colnames(dist_busqueda) <- usuarios
+  emparejamientos$distanciaBusqueda <- mapply(function(p1, p2) dist_busqueda[p1, p2],
+                                              emparejamientos$persona1,
+                                              emparejamientos$persona2)
+  
+  # Distancia de los hobbies
+  rownames(dist_hobbies) <- colnames(dist_hobbies) <- usuarios
+  emparejamientos$distanciaHobbies <- mapply(function(p1, p2) dist_hobbies[p1, p2],
+                                             emparejamientos$persona1,
+                                             emparejamientos$persona2)
+  
+  # Distancia de los lugares para las primeras citas
+  rownames(dist_primeraCita) <- colnames(dist_primeraCita) <- usuarios
+  emparejamientos$distanciaPrimeraCita <- mapply(function(p1, p2) dist_primeraCita[p1, p2],
+                                                 emparejamientos$persona1,
+                                                 emparejamientos$persona2)
+  
+  # Distancia de los lugares para las primeras citas
+  rownames(dist_lugaresFac) <- colnames(dist_lugaresFac) <- usuarios
+  emparejamientos$distanciaLugaresFac <- mapply(function(p1, p2) dist_lugaresFac[p1, p2],
+                                                emparejamientos$persona1,
+                                                emparejamientos$persona2)
+  
+  print("Distancias búsqueda")
+  print(summary(emparejamientos$distanciaBusqueda))
+  print("Distancias Hobbies")
+  print(summary(emparejamientos$distanciaHobbies))
+  print("Distancias primera cita")
+  print(summary(emparejamientos$distanciaPrimeraCita))
+  print("Distancias lugares fac")
+  print(summary(emparejamientos$distanciaLugaresFac))
+  
+  
+}
+get_summary_distancias(emparejamientos)
+
+
 distancias <- as.matrix(distancias)
 rownames(distancias) <- colnames(distancias) <- usuarios
 emparejamientos$distancia <- mapply(function(p1, p2) distancias[p1, p2],
-                                    emparejamientos$persona1,
-                                    emparejamientos$persona2)
-
-
-summary(emparejamientos$distancia)
-
-emparejamientos%>%
-  count(persona1)%>%
-  filter(n>2)
-
-emparejamientos%>%
-  count(persona2)%>%
-  filter(n>1)
-
-
+                                           emparejamientos$persona1,
+                                           emparejamientos$persona2)
 emparejamientos
+
 # Ahora necesito que todos los ids esten en una sola columna
+
 emparejamientosInverse <- emparejamientos%>%
   rename(persona = persona1)%>%
   rename(persona1 = persona2)%>%
   rename(persona2 = persona)%>%
   select(persona1, persona2, distancia)
+
 
 
 preResultados <- rbind(emparejamientos, emparejamientosInverse)%>%
@@ -874,12 +868,82 @@ nrow(base)-length(unique(preResultados$id))
 
 
 length(unique(preResultados$id))
-# Sólo se quedaron 9 personas sin emparejar
-# por quéee?
 
 
 noEmparejados <- base%>%filter(id %in% setdiff(base$id, unique(preResultados$id)))
 distanciasnoEmparejados <- distancias[,noEmparejados$id]
 # Después se ve qué hacer con ellos
 
-Resultados <- preResultados
+Resultados <- preResultados%>%
+  arrange(distancia)
+
+# Ejemplo
+p <- base%>%
+  filter(id %in% c(534, 49))
+
+
+# Evaluación con un emparejamiento al azar 
+
+# Generar las Parejas de IDs Aleatorias 
+# ----------------------------------------
+
+# 1. Definir los IDs
+ids <- 1:nrow(base)
+
+# 2. Determinar la persona que queda sola (el ID 545)
+persona_sola <- ids[length(ids)] 
+ids_a_emparejar <- ids[-length(ids)] # IDs del 1 al 544
+
+# 3. Asignación Aleatoria: Barajar (shuffle) los IDs
+# Esto asegura que el orden sea completamente aleatorio.
+set.seed(26)
+ids_barajados <- sample(ids_a_emparejar)
+
+# 4. Dividir el vector barajado en dos grupos iguales
+mitad <- length(ids_barajados) / 2 # Será 272
+
+persona1 <- ids_barajados[1:mitad]
+persona2 <- ids_barajados[(mitad + 1):length(ids_barajados)]
+
+# 5. Crear el data frame de parejas
+parejas_aleatorias_df <- data.frame(
+  persona1 = persona1,
+  persona2 = persona2
+)
+
+parejas_aleatorias_df
+
+get_summary_distancias(parejas_aleatorias_df)
+
+
+# Analizamos cuáles quedan con otros sexos
+aleatorias <- parejas_aleatorias_df%>%select(persona1, persona2)%>%
+  # 1. Fusión para obtener los datos de persona1
+  left_join(
+    base %>% select(id, genero, gustos), # Selecciona las columnas necesarias de 'base'
+    by = c("persona1" = "id") # Une 'persona1' de 'aleatorios' con 'id' de 'base'
+  ) %>%
+  # Renombrar las columnas para persona1 antes de la siguiente fusión
+  rename(
+    genero_p1 = genero,
+    gustos_p1 = gustos
+  ) %>%
+  # 2. Fusión para obtener los datos de persona2
+  left_join(
+    base %>% select(id, genero, gustos), # Vuelve a seleccionar las columnas de 'base'
+    by = c("persona2" = "id") # Une 'persona2' del resultado parcial con 'id' de 'base'
+  ) %>%
+  # Renombrar las columnas para persona2
+  rename(
+    genero_p2 = genero,
+    gustos_p2 = gustos
+  )
+
+
+aleatorias%>%
+  count(genero_p1, gustos_p1, genero_p2, gustos_p2)%>%
+  arrange(desc(n))
+
+
+get_summary_distancias(emparejamientos)
+get_summary_distancias(parejas_aleatorias_df)
